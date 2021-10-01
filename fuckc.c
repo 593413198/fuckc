@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
 
 // how memory used for code?
@@ -58,8 +59,8 @@ int line; // code line
 
 int main(int argc, char **argv)
 {
-    int fd;
-    if ((fd = open(*argv, 0)) < 0)
+    FILE* fd;
+    if ((fd = fopen(*argv, 0)) < 0)
     {
         printf("Open %s Failed.\n", *argv);
         return FUCKC_ERROR;
@@ -88,7 +89,7 @@ int main(int argc, char **argv)
     memset(stack, 0, poolsize);
 
     // register
-    bp = sp = (int*) ((int)stack + poolsize);
+    bp = sp = (int*) (&stack + poolsize);
     ax = 0;
 
     return FUCKC_SUCC;
