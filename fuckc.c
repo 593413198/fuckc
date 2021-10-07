@@ -37,7 +37,7 @@
 #define FUCKC_UND 0
 #define debug 
 // #define int int32_t
-// #define int long long
+#define int long long
 
 // We only use: text, data, stack !!!
 int *text;
@@ -66,7 +66,6 @@ int eval()
     while (1)
     {
         cycle ++;
-        // op = *pc++;
         op = *pc++;
 #ifdef debug
         printf("%d> %.4s (%d)\n", cycle,
@@ -77,11 +76,7 @@ int eval()
         // IMM const: ax <- const, pc++
         if (op == IMM)  { ax = *pc++; }
         // PUSH: ax -> stack top
-        else if (op == PUSH) 
-        { 
-            // --sp;
-            *sp = ax; 
-        }
+        else if (op == PUSH) { --sp; *sp = ax; }
         // ADD: ax <- ax + sp; sp++
         else if (op == ADD) { ax += *sp; sp++; }
         // EXIT
@@ -94,11 +89,11 @@ int eval()
 int main(int argc, char **argv)
 {
     FILE* fd;
-    if ((fd = fopen(*argv, 0)) < 0)
-    {
-        printf("Open %s Failed.\n", *argv);
-        return FUCKC_ERROR;
-    }
+    // if ((fd = fopen(*argv, 0)) < 0)
+    // {
+    //     printf("Open %s Failed.\n", *argv);
+    //     return FUCKC_ERROR;
+    // }
 
     // malloc
     if (!(text = old_text = malloc(poolsize)))
@@ -123,9 +118,8 @@ int main(int argc, char **argv)
     memset(stack, 0, poolsize);
 
     // register
-    bp = sp = (int*) (&stack + poolsize);
+    bp = sp = (int*) ((int)stack + poolsize);
     ax = 0;
-    printf("sp start: %06x\n", sp);
 
     int i = 0;
     text[i++] = IMM;
@@ -139,6 +133,4 @@ int main(int argc, char **argv)
     pc = text;
     
     return eval();
-
-    // return FUCKC_SUCC;
 }
