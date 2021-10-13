@@ -45,6 +45,8 @@ int *old_text;
 int *stack;
 char *data;
 
+char *src;
+
 // register
 int *pc; // point to next operation
 int *sp; // stack pointer
@@ -56,8 +58,80 @@ enum { LEA ,IMM ,JMP ,CALL,JZ  ,JNZ ,ENT ,ADJ ,LEV ,LI  ,LC  ,SI  ,SC  ,PUSH,
        OR  ,XOR ,AND ,EQ  ,NE  ,LT  ,GT  ,LE  ,GE  ,SHL ,SHR ,ADD ,SUB ,MUL ,DIV ,MOD ,
        OPEN,READ,CLOS,PRTF,MALC,MSET,MCMP,EXIT };
 
+// LEX Token
+enum { 
+    Div = 128, Num, Str, Enter, Err, Comment,
+};
+
 int poolsize = 256 KB; // size of text, data, stack
 int line; // code line
+
+int token;
+
+
+void lex()
+{
+    int number; // number
+    char string[100]; // string
+    while (token = *src)
+    {
+        src++; // 这是下一个字符
+        if (0)
+        {
+        }
+        else if (token == '"')
+        {
+            int index = 0;
+            while (*src != '"')
+            {
+                string[index ++] = *src++;
+            }
+            printf("str: %s\n", string);
+            src++;
+            token = Str;
+            return;
+        }
+        // 数字 number
+        // 十进制: 123  TODO 别的进制
+        else if (token >= '0' && token <= '9')
+        {
+            number = 0;
+            while (*src >= '0' && *src <= '9')
+                number = number * 10 + *src++ - '0';
+            token = Num;
+            return;
+        }
+        // 注释 comment 只考虑//
+        else if (token == '/')
+        {
+            if (*src == '/') // 注释
+            {
+                // 后面直到换行符都不要
+                while (*src++ != '\n') 
+                token = Comment;
+                // src ++;
+                return;
+            }
+            else // 除法
+            {
+                token = Div;
+                return;
+            }
+        }
+        else if (token == '\n')
+        {
+            token = Enter;
+            return;
+        }
+        else
+        {
+            token = Err;
+            return;
+        }
+    }
+    return;
+}
+
 
 int eval()
 {
@@ -86,14 +160,35 @@ int eval()
     return 0;
 }
 
+void program()
+{
+    lex();
+    while (token > 0)
+    {
+        printf("%d: \n", token);
+        lex();
+    }
+}
+
 int main(int argc, char **argv)
 {
     FILE* fd;
-    // if ((fd = fopen(*argv, 0)) < 0)
-    // {
-    //     printf("Open %s Failed.\n", *argv);
-    //     return FUCKC_ERROR;
-    // }
+    // char buff[1 KB];
+    char buff[1000];
+    
+    if ((fd = fopen(argv[1], "r")) < 0)
+    {
+        printf("Open %s Failed.\n", *argv);
+        return FUCKC_ERROR;
+    }
+    printf("Open %s Succ.\n", argv[1]);
+
+    while (fgets(buff, 1024, fd))
+    {
+        src = buff;
+        printf("source code: %s", src);
+        program();
+    }
 
     // malloc
     if (!(text = old_text = malloc(poolsize)))
@@ -117,20 +212,22 @@ int main(int argc, char **argv)
     memset(data, 0, poolsize);
     memset(stack, 0, poolsize);
 
-    // register
-    bp = sp = (int*) ((int)stack + poolsize);
-    ax = 0;
+    // 测试一下Lexical Analysis
 
-    int i = 0;
-    text[i++] = IMM;
-    text[i++] = 10;
-    text[i++] = PUSH;
-    text[i++] = IMM;
-    text[i++] = 20;
-    text[i++] = ADD;
-    text[i++] = PUSH;
-    text[i++] = EXIT;
-    pc = text;
+    // register
+    // bp = sp = (int*) ((int)stack + poolsize);
+    // ax = 0;
+
+    // int i = 0;
+    // text[i++] = IMM;
+    // text[i++] = 10;
+    // text[i++] = PUSH;
+    // text[i++] = IMM;
+    // text[i++] = 20;
+    // text[i++] = ADD;
+    // text[i++] = PUSH;
+    // text[i++] = EXIT;
+    // pc = text;
     
-    return eval();
+    // return eval();
 }
